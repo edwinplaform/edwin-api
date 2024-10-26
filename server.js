@@ -3,8 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import db from "./app/models/index.js"
 import user from './app/routes/user.js'
-import course from "./app/routes/course.js";
-import {checkUser, requireAuth} from './app/middleware/authMiddleware.js'
+import student from "./app/routes/student.js";
+// import {checkUser, requireAuth} from './app/middleware/authMiddleware.js'
 const app = express();
 
 dotenv.config();
@@ -12,9 +12,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-db.sequelize.sync({ force: false })
+db.sequelize.sync({ alter: true })
     .then(() => {
-        console.log("ok");
+        console.log("Tables and models synced successfully!");
     })
     .catch(err =>
         console.log(err));
@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/users",user);
-app.use("/api/v1/courses",course);
+app.use("/api/v1/students",student);
 
 const PORT = process.env.PORT || 8081;
 app.listen(PORT,()=>{
