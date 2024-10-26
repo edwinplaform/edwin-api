@@ -2,12 +2,15 @@ import {DataTypes} from 'sequelize'
 import bcrypt from "bcrypt";
 
 export default (sequelize) => {
-    const ModelUser = sequelize.define('Users', {
-        id: {
-            allowNull: false,
+    const UserModel = sequelize.define('Users', {
+        user_id: {
             autoIncrement: true,
             primaryKey: true,
             type: DataTypes.INTEGER
+        },
+        clerk_user_id: {
+            type: DataTypes.STRING,
+            unique: true,
         },
         first_name: {
             type: DataTypes.STRING,
@@ -25,21 +28,28 @@ export default (sequelize) => {
                 isEmail: true,
             },
         },
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
+        // password: {
+        //     type: DataTypes.STRING,
+        //     allowNull: false,
+        // },
         profile_photo: {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        role : {
+        contact_number: {
             type: DataTypes.STRING,
+            allowNull: false,
+        },
+        role : {
+            type: DataTypes.ENUM('student','tutor','admin'),
+            allowNull: false,
         }
-    });
+    },
+        {timestamps: true});
 
-    return ModelUser;
+    return UserModel;
 
 }
+// export default ModelUser;
 
 
