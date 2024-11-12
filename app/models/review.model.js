@@ -8,10 +8,10 @@ export default (sequelize) => {
             autoIncrement: true,
         },
         rating: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DECIMAL(3,2),
             allowNull: false,
             validate: {
-                min: 1,
+                min: 0,
                 max: 5,
             },
         },

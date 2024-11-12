@@ -1,83 +1,119 @@
-// const User = require('../models/user.model');
-// const db = require('../models/index.js');
-import db from "../models/index.js";
-import jwt from "jsonwebtoken";
-import http from "http-status-codes"
-import bcrypt from "bcrypt";
+import {clerkClient} from "@clerk/express";
 import dotenv from "dotenv";
+import http from "http-status-codes"
+import db from "../models/index.js";
+
 dotenv.config();
 
+export const upgradeRole = async (req, res) => {
+    const {userId, role, isOnboarding} = req.body;
+    console.log(userId, role);
 
-// const maxAge = process.env.JWT_SECRET | 3 * 24 * 60 * 60;
-// const createToken = (id) => {
-//     return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: maxAge} )
-// }
-//
-// export const signupPost = async (req, res) => {
-//     try{
-//         const {firstName, lastName, email, password} = req.body;
-//         const userExists = await db.user.findOne({ where: {email} });
-//         if (userExists) {
-//             return res.status(http.BAD_REQUEST).json({message:"user already exists"});
-//         }
-//
-//         const newUser = await db.user.create({
-//             first_name: firstName,
-//             last_name: lastName,
-//             email,
-//             password : await  bcrypt.hashSync(password,10),
-//         });
-//
-//         const token = createToken({id: newUser.id});
-//         console.log(token);
-//         res.cookie('jwt',token, {httpOnly: true, maxAge: maxAge * 1000});
-//         return res.status(http.CREATED).json(newUser);
-//     } catch (err) {
-//         return res.status(http.BAD_REQUEST).json({message:"error creating user",error: err.message});
-//     }
-// }
-//
-// export const loginPost = async (req, res) => {
-//     try {
-//         const user = await db.user.findOne({where : {email : req.body.email}});
-//         if (!user) {
-//             return res.status(http.BAD_REQUEST).json({message:"Sorry this email does not exist"});
-//         }
-//         const validPassword = bcrypt.compareSync(req.body.password, user.password);
-//         console.log(user.password );
-//         if (!validPassword) {
-//             return res.status(http.BAD_REQUEST).json({message:"Invalid Login Details"});
-//         }
-//         const token = createToken({id: user.id});
-//         res.cookie('jwt',token, {httpOnly: true, maxAge: maxAge * 1000});
-//         return res.status(http.OK).json({message:"Successfully logged in", user});
-//
-//     }catch (error){
-//         return res.status(http.BAD_REQUEST).json({message:"An error occurred while logging in",error:error.message});
-//     }
-// }
-//
-// export const signupGet = async (req, res) => {
-//     res.render('signup');
-// }
-//
-// export const loginGet = async (req, res) => {
-//     res.render('login');
-// }
-//
-// export const getUsers = async (req, res) => {
-//     try {
-//         const users = await db.user.findAll();
-//         res.status(200).json(users);
-//     }catch (err){
-//         res.status(400).json({message:"error getting users",error: err.message});
-//     }
-// }
-//
-// export const logoutGet = (req, res) => {
-//     res.cookie('jwt','',{maxAge:1});
-//     res.redirect('/');
-// }
+    try {
+        await clerkClient.users.updateUserMetadata(userId, {
+            publicMetadata: {
+                role: role,
+                isOnboarding: isOnboarding,
+            },
+        })
+        res.status(200).json({success: true});
+    } catch (error) {
+        res.status(400).json({message: error.message});
+    }
+};
+
+
+export const createUser = async (req, res) => {
+    // const userId = req.auth.userId;
+    const {userId, first_name, last_name, email, profile_photo, contact_number, role} = req.body;
+
+    try {
+        const user = await db.user.create({
+            clerk_user_id: userId,
+            first_name: first_name,
+            last_name: last_name,
+            email: email,
+            profile_photo: profile_photo,
+            contact_number: contact_number,
+            role: role,
+        });
+
+        await clerkClient.users.updateUser(userId, {
+            firstName: first_name,
+            lastName: last_name,
+            profileImageID: profile_photo,
+        });
+
+        res.status(http.CREATED).json({success: true, user});
+
+    } catch (err) {
+        console.error("Error creating user", err);
+        res.status(http.BAD_REQUEST).json({message: err.message});
+    }
+};
+
+export const getUser = async (req, res) => {
+    const {userId} = req.params;
+
+    try {
+        const user = await db.user.findOne({
+            where: {clerk_user_id: userId},
+            include: [
+                {model: db.student, attributes: ['student_id']},
+                {model: db.tutor, attributes: ['tutor_id', 'hourly_rate', 'description']}
+            ]
+        });
+
+        if (!user) {
+            return res.status(http.NOT_FOUND).json({message: "no student"});
+        }
+
+        res.status(http.OK).json(user);
+    } catch (err) {
+        console.error("Error fetching user profile:", err);
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+    }
+}
+
+export const updateUser = async (req, res) => {
+    const {userId} = req.params;
+    const {first_name, last_name, email} = req.body;
+
+    try {
+        const user = await db.user.findOne({where: {clerk_user_id: userId}});
+
+        if (!user) {
+            return res.status(http.NOT_FOUND).json({message: "User not found"});
+        }
+
+        user.first_name = first_name;
+        user.last_name = last_name;
+        user.email = email;
+
+        await user.save();
+
+        res.status(http.OK).json({success: true, user});
+    } catch (err) {
+        console.error("Error updating user:", err);
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+    }
+}
+
+
+export const deleteUser = async (req, res) => {
+    const {userId} = req.params;
+
+    try {
+        await clerkClient.users.deleteUser(userId);
+
+        await db.user.destroy({where: {clerk_user_id: userId}});
+
+        res.status(http.OK).json({success: true, message: "successfully user deleted"});
+    } catch (err) {
+        console.error("Error deleting user", err);
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+    }
+};
 
 
 

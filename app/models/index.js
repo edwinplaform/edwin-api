@@ -3,7 +3,7 @@ import dbConfig from "../config/db.config.js";
 import UserModelFunc from "./user.model.js"
 import StudentModelFunc from "./student.model.js";
 import TutorModelFunc from "./tutor.model.js";
-import AppointmentModelFunc from "./appointment.model.js";
+import AppointmentModelFunc from "./session.model.js";
 import InvoiceModelFunc from "./invoice.model.js";
 import MessageModelFunc from "./message.model.js";
 import ResourceModelFunc from "./resource.model.js";
@@ -12,6 +12,7 @@ import ReviewModelFunc from "./review.model.js";
 import TutorAvailabilityModelFunc from "./tutorAvailability.model.js";
 import TutorSubjectModelFunc from "./tutorSubject.model.js";
 import SubjectModelFunc from "./subject.model.js";
+import NotificationModelFunc from "./notification.model.js";
 
 
 const sequelize = new Sequelize(dbConfig.DB,dbConfig.USER,dbConfig.PASSWORD, {
@@ -40,6 +41,7 @@ const ReviewModel = ReviewModelFunc(sequelize);
 const TutorAvailabilityModel = TutorAvailabilityModelFunc(sequelize);
 const TutorSubjectModel = TutorSubjectModelFunc(sequelize);
 const SubjectModel = SubjectModelFunc(sequelize);
+const NotificationModel = NotificationModelFunc(sequelize);
 
 // User to Tutor and Student 1 to 1
 UserModel.hasOne(TutorModel, {foreignKey: 'user_id', onDelete: 'CASCADE'});
@@ -89,6 +91,9 @@ ReviewModel.belongsTo(StudentModel, {foreignKey: 'student_id'});
 TutorModel.hasMany(ReviewModel, {foreignKey: 'tutor_id', onDelete: 'CASCADE'});
 ReviewModel.belongsTo(TutorModel, {foreignKey: 'tutor_id'});
 
+UserModel.hasMany(NotificationModel, { foreignKey: 'recipient_id' });
+NotificationModel.belongsTo(UserModel, { foreignKey: 'recipient_id' });
+
 const db = {};
 
 db.Sequelize = Sequelize;
@@ -106,5 +111,6 @@ db.review = ReviewModel
 db.tutorAvailability = TutorAvailabilityModel
 db.tutorSubject = TutorSubjectModel
 db.subject = SubjectModel
+db.notification = NotificationModel
 
 export default db;

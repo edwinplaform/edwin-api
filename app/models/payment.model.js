@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const PaymentModel = sequelize.define("Payment", {
@@ -8,21 +8,24 @@ export default (sequelize) => {
             primaryKey: true,
         },
         amount: {
-            type: DataTypes.DECIMAL(7,2),
+            type: DataTypes.DECIMAL(7, 2),
             allowNull: false,
+        },
+        payment_status: {
+            type: DataTypes.ENUM('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED', 'CANCELLED'),
+            defaultValue: 'PENDING'
         },
         payment_method: {
-            type: DataTypes.ENUM('stripe','slip'),
-            allowNull: false,
+            type: DataTypes.ENUM('CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER')
         },
-        payment_slip: {
+        transaction_id: {
             type: DataTypes.STRING,
+            unique: true
         },
-        status: {
-            type: DataTypes.ENUM('pending','confirmed'),
-            defaultValue: 'pending',
+        payment_gateway_response: {
+            type: DataTypes.JSON
         },
-    },{timestamps: true});
+    }, {timestamps: true});
 
     return PaymentModel;
 
