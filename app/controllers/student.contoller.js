@@ -1,7 +1,5 @@
 import db from "../models/index.js";
 import http from "http-status-codes";
-import {where} from "sequelize";
-import err from "jsonwebtoken/lib/JsonWebTokenError.js";
 
 export const postStudent = async (req, res) => {
     try {
@@ -38,7 +36,7 @@ export const getStudent = async (req, res) => {
         const {id}  = req.params;
         const student = await db.student.findOne({where: {id: id}});
         if (student === null) {
-            return res.status(http.OK).json({message:"no student",error: err.message});
+            return res.status(http.OK).json({message:"no student"});
         }
         res.status(http.OK).json(student);
 
