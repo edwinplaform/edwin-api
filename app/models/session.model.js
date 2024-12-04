@@ -40,7 +40,7 @@ export default (sequelize) => {
     }, {
         hooks: {
             beforeCreate: (session) => {
-                session.duration_minutes = (session.end_time = session.session_date)
+                session.duration_minutes = (session.end_time - session.session_date)
             }
         }
     });

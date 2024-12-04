@@ -22,96 +22,201 @@ export const upgradeRole = async (req, res) => {
     }
 };
 
-
 export const createUser = async (req, res) => {
-    // const userId = req.auth.userId;
-    const {userId, first_name, last_name, email, profile_photo, contact_number, role} = req.body;
+    const {
+        userId,
+        firstName,
+        lastName,
+        phone,
+        address,
+        subjects,
+        qualifications,
+        availability,
+        certificateUrl,
+        description,
+        hourlyRate,
+        status,
+        role
+    } = req.body;
+
+    const t = await db.sequelize.transaction();
 
     try {
         const user = await db.user.create({
-            clerk_user_id: userId,
-            first_name: first_name,
-            last_name: last_name,
-            email: email,
-            profile_photo: profile_photo,
-            contact_number: contact_number,
-            role: role,
-        });
+            userId,
+            firstName,
+            lastName,
+            phone,
+            address,
+            role
+        }, {transaction: t});
 
-        await clerkClient.users.updateUser(userId, {
-            firstName: first_name,
-            lastName: last_name,
-            profileImageID: profile_photo,
-        });
+        if (role === 'TUTOR') {
+            await db.tutor.create({
+                userId,
+                subjects,
+                qualifications: qualifications || null,
+                availability: availability || null,
+                certificateUrl: certificateUrl || null,
+                description: description || null,
+                hourlyRate: hourlyRate || null,
+                status: status || "PENDING"
+            }, {transaction: t});
+        } else if (role === 'STUDENT') {
+            await db.student.create({
+                userId,
+                subjects
+            }, {transaction: t});
+        }
 
-        res.status(http.CREATED).json({success: true, user});
-
+        await t.commit();
+        res.status(http.CREATED).json({message: "User created successfully ", user});
     } catch (err) {
-        console.error("Error creating user", err);
-        res.status(http.BAD_REQUEST).json({message: err.message});
+        await t.rollback();
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error creating user", error: err.message});
     }
 };
 
-export const getUser = async (req, res) => {
-    const {userId} = req.params;
-
+export const getUserById = async (req, res) => {
     try {
-        const user = await db.user.findOne({
-            where: {clerk_user_id: userId},
+        const user = await db.user.findByPk(req.params.userId, {
             include: [
-                {model: db.student, attributes: ['student_id']},
-                {model: db.tutor, attributes: ['tutor_id', 'hourly_rate', 'description']}
+                {model: db.tutor, required: false},
+                {model: db.student, required: false}
             ]
         });
 
         if (!user) {
-            return res.status(http.NOT_FOUND).json({message: "no student"});
+            return res.status(http.NOT_FOUND).json({message: 'User not found'});
         }
-
         res.status(http.OK).json(user);
     } catch (err) {
-        console.error("Error fetching user profile:", err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error fetching user", error: err.message});
     }
-}
+};
 
 export const updateUser = async (req, res) => {
     const {userId} = req.params;
-    const {first_name, last_name, email} = req.body;
+    const {
+        firstName,
+        lastName,
+        phone,
+        address,
+        subjects,
+        qualifications,
+        availability,
+        certificateUrl,
+        description,
+        hourlyRate,
+        status,
+        role
+    } = req.body;
+
+    const t = await db.sequelize.transaction();
 
     try {
-        const user = await db.user.findOne({where: {clerk_user_id: userId}});
+        const [userUpdated] = await db.user.update({
+            firstName,
+            lastName,
+            phone,
+            address,
+            role
+        }, {
+            where: {userId},
+            transaction: t
+        });
 
-        if (!user) {
-            return res.status(http.NOT_FOUND).json({message: "User not found"});
+        if (role === 'TUTOR') {
+            await db.tutor.update({
+                subjects,
+                qualifications: qualifications || null,
+                availability: availability || null,
+                certificateUrl: certificateUrl || null,
+                description: description || null,
+                hourlyRate: hourlyRate || null,
+                status: status || 'PENDING'
+            }, {
+                where: {userId},
+                transaction: t
+            });
+        } else if (role === 'STUDENT') {
+            await db.student.update({
+                subjects
+            }, {
+                where: {userId},
+                transaction: t
+            });
         }
 
-        user.first_name = first_name;
-        user.last_name = last_name;
-        user.email = email;
-
-        await user.save();
-
-        res.status(http.OK).json({success: true, user});
+        await t.commit();
+        res.status({message: 'User updated successfully', updated: userUpdated > 0});
     } catch (err) {
-        console.error("Error updating user:", err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+        await t.rollback();
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error updating user', error: err.message});
     }
-}
+};
 
+export const listUser = async (req, res) => {
+    try {
+        const {role} = req.query;
+        let users;
+
+        if (role === 'TUTOR') {
+            users = await db.user.findAll({
+                where: {role: 'TUTOR'},
+                include: [{
+                    model: db.tutor,
+                    required: true
+                }]
+            });
+        } else if (role === 'STUDENT') {
+            users = await db.user.findAll({
+                where: {role: 'STUDENT'},
+                include: [{
+                    model: db.student,
+                    required: true
+                }]
+            });
+        } else {
+            users = await db.user.findAll({
+                include: [
+                    {model: db.tutor, required: false},
+                    {model: db.student, required: false}
+                ]
+            });
+        }
+
+        res.status(http.OK).json(users);
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error listing users', error: err.message});
+    }
+};
 
 export const deleteUser = async (req, res) => {
     const {userId} = req.params;
+    const t = await db.sequelize.transaction();
 
     try {
-        await clerkClient.users.deleteUser(userId);
+        await db.tutor.destroy({
+            where: {userId},
+            transaction: t
+        });
 
-        await db.user.destroy({where: {clerk_user_id: userId}});
+        await db.student.destroy({
+            where: {userId},
+            transaction: t
+        });
 
-        res.status(http.OK).json({success: true, message: "successfully user deleted"});
+        const userDeleted = await db.user.destroy({
+            where: {userId},
+            transaction: t
+        });
+
+        await t.commit();
+        res.status(http.OK).json({message: 'User deleted', deleted: userDeleted > 0});
     } catch (err) {
-        console.error("Error deleting user", err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+        await t.rollback();
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error deleting user', error: err.message});
     }
 };
 
