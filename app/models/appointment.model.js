@@ -2,39 +2,57 @@ import {DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const AppointmentModel = sequelize.define("Appointment", {
-        appointment_id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
+        id: {
+            type: DataTypes.STRING,
             primaryKey: true,
+            unique: true,
         },
-        proposed_date: {
-            type: DataTypes.DATEONLY,
+        studentId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: "Users",
+                key: "userId"
+            }
+        },
+        tutorId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: "Users",
+                key: "userId"
+            }
+        },
+        subject: {
+            type: DataTypes.STRING,
             allowNull: false,
         },
-        start_time: {
-            type: DataTypes.TIME,
+        grade: {
+            type: DataTypes.STRING,
             allowNull: false,
         },
-        end_time: {
-            type: DataTypes.TIME,
+        comment: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        date: {
+            type: DataTypes.STRING,
             allowNull: false,
+        },
+        time: {
+            type: DataTypes.STRING,
+            allowNull: false
         },
         status: {
-            type: DataTypes.ENUM('PENDING','CONFIRMED','REJECTED'),
-            defaultValue: 'PENDING',
+            type: DataTypes.ENUM('PENDING', 'ACCEPTED', 'REJECTED'),
+            defaultValue: 'PENDING'
         },
-        proposed_rate: {
-            type: DataTypes.DECIMAL(10,2),
-            allowNull: false,
-        },
-        notes: {
+        rejectReason: {
             type: DataTypes.TEXT,
-            allowNull: true,
-        },
-        rejected_reason: {
-            type: DataTypes.TEXT,
-            allowNull: true,
+            allowNull: true
         }
+    }, {
+        timestamps: true
     });
 
     return AppointmentModel;

@@ -5,7 +5,10 @@ import {
     getUserById,
     updateUser,
     upgradeRole,
-    listUser
+    listUser,
+    getTutorsByStatus,
+    updateTutorStatus,
+    filterUsers
 } from "../controllers/user.controller.js";
 // import {validateUser} from "../middleware/validationMiddleware.js";
 // import {validateResults} from "../middleware/validationResult.js";
@@ -18,5 +21,8 @@ router.get("/:userId", getUserById);
 router.put("/:userId", updateUser);
 router.delete("/:userId", deleteUser);
 router.get("/", listUser);
+router.get("/tutors/status/:status", getTutorsByStatus);
+router.patch("/tutors/:userId/status", updateTutorStatus);
+router.get("/filter", filterUsers);
 
 export default router;

@@ -97,19 +97,20 @@ UserModel.hasMany(NotificationModel, {foreignKey: 'recipient_id'});
 NotificationModel.belongsTo(UserModel, {foreignKey: 'recipient_id'});
 
 // Appointments relations
-AppointmentModel.belongsTo(StudentModel, {foreignKey: 'userId'});
-StudentModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+AppointmentModel.belongsTo(UserModel, {foreignKey: 'studentId', as: 'Student'});
+// StudentModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+AppointmentModel.belongsTo(UserModel, {foreignKey: 'tutorId', as: 'Tutor'});
 
-AppointmentModel.belongsTo(TutorModel, {foreignKey: 'userId'});
-TutorModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+// AppointmentModel.belongsTo(TutorModel, {foreignKey: 'userId'});
+// TutorModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 
 // Appointments between student and tutor
-AppointmentModel.belongsTo(SubjectModel, {foreignKey: 'subject_id'});
-SubjectModel.hasMany(AppointmentModel, {foreignKey: 'subject_id'});
+// AppointmentModel.belongsTo(SubjectModel, {foreignKey: 'subject_id'});
+// SubjectModel.hasMany(AppointmentModel, {foreignKey: 'subject_id'});
 
 // Appointment to Session (one-to-one)
-AppointmentModel.hasOne(SessionModel, {foreignKey: 'appointment_id', onDelete: 'SET NULL'});
-SessionModel.belongsTo(AppointmentModel, {foreignKey: 'appointment_id'});
+// AppointmentModel.hasOne(SessionModel, {foreignKey: 'appointment_id', onDelete: 'SET NULL'});
+// SessionModel.belongsTo(AppointmentModel, {foreignKey: 'appointment_id'});
 
 
 const db = {};

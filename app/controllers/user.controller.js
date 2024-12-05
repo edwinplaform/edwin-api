@@ -1,7 +1,9 @@
 import {clerkClient} from "@clerk/express";
 import dotenv from "dotenv";
+import {Op} from "sequelize";
 import http from "http-status-codes"
 import db from "../models/index.js";
+import * as dns from "node:dns";
 
 dotenv.config();
 
@@ -219,6 +221,152 @@ export const deleteUser = async (req, res) => {
         res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error deleting user', error: err.message});
     }
 };
+
+export const getTutorsByStatus = async (req, res) => {
+    try {
+        const {status} = req.params;
+
+        const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
+        if (!validStatuses.includes(status)) {
+            return res.status(http.NOT_FOUND).json({message: "Invalid status. Must be one of: PENDING, ACCEPTED, REJECTED"});
+        }
+
+        const tutors = await db.tutor.findAll({
+            where: {status},
+            include: [{
+                model: db.user,
+                attributes: ['firstName', 'lastName', 'phone', 'address']
+            }],
+            // order: [['createdAt', 'DESC']]
+        });
+
+        res.status(http.OK).json(tutors);
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error fetching tutors by status.', error: err.message});
+    }
+};
+
+export const updateTutorStatus = async (req, res) => {
+    const {userId} = req.params;
+    const {status} = req.body;
+
+    const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
+    if (!status || !validStatuses.includes(status)) {
+        return res.status(http.NOT_FOUND).json({message: "Invalid status. Must be one of: PENDING, ACCEPTED, REJECTED"});
+    }
+
+    const t = await db.sequelize.transaction();
+
+    try {
+        const [updatedRows] = await db.tutor.update(
+            {status},
+            {
+                where: {userId},
+                transaction: t
+            }
+        );
+
+        if (updatedRows === 0) {
+            await t.rollback();
+            return res.status(http.NOT_FOUND).json({message: 'Tutor not found!'});
+        }
+
+        await t.commit();
+        res.status(http.OK).json({message: 'Tutor status updated successfully!', status});
+    } catch (err) {
+        await t.rollback();
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error updating tutor status.', error: err.message});
+    }
+};
+
+export const filterUsers = async (req, res) => {
+    try {
+        const {
+            role,
+            subjects,
+            minRate,
+            maxRate,
+            page = 1,
+            pageSize = 10
+        } = req.query;
+
+        const userWhere = {};
+        const tutorWhere = {};
+        const studentWhere = {};
+
+        if (subjects) {
+            const subjectArray = Array.isArray(subjects)
+                ? subjects : [subjects];
+
+            if (role === 'TUTOR') {
+                tutorWhere.subjects = {
+                    [Op.overlap]: subjectArray
+                };
+            }
+        }
+
+        if (minRate || maxRate) {
+            tutorWhere.hourlyRate = {};
+            if (minRate) tutorWhere.hourlyRate[Op.gte] = minRate;
+            if (maxRate) tutorWhere.hourlyRate[Op.lte] = maxRate;
+        }
+
+        const offset = (page - 1) * pageSize;
+
+        let users;
+        let total;
+
+        if (role === 'TUTOR') {
+            const result = await db.user.findAndCountAll({
+                where: userWhere,
+                include: [{
+                    model: db.tutor,
+                    where: tutorWhere,
+                    required: true
+                }],
+                limit: parseInt(pageSize),
+                offset: offset
+            });
+
+            users = result.rows;
+            total = result.count;
+        } else {
+            const result = await db.user.findAndCountAll({
+                where: userWhere,
+                include: [
+                    {
+                        model: db.tutor,
+                        where: tutorWhere,
+                        required: false
+                    },
+                    {
+                        model: db.student,
+                        where: studentWhere,
+                        required: false
+                    }
+                ],
+                limit: parseInt(pageSize),
+                offset: offset
+            });
+            users = result.rows;
+            total = result.count;
+        }
+
+        res.status(http.OK).json({
+            users,
+            pagination: {
+                total,
+                page: parseInt(page),
+                pageSize: parseInt(pageSize),
+                totalPages: Math.ceil(total / pageSize)
+            }
+        });
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error filtering users", error: err.message});
+    }
+};
+
+
 
 
 
