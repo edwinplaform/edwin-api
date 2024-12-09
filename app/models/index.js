@@ -45,13 +45,14 @@ const SubjectModel = SubjectModelFunc(sequelize);
 const NotificationModel = NotificationModelFunc(sequelize);
 const AppointmentModel = AppointmentModelFunc(sequelize);
 
+//-------------------------------------------------------------------------------------------
 // User to Tutor and Student 1 to 1
 UserModel.hasOne(TutorModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 TutorModel.belongsTo(UserModel, {foreignKey: 'userId'});
 
 UserModel.hasOne(StudentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 StudentModel.belongsTo(UserModel, {foreignKey: 'userId'});
-
+//----------------------------------------------------------------------------------------------
 // Tutor to TutorAvailability 1 to many
 TutorModel.hasMany(TutorAvailabilityModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 TutorAvailabilityModel.belongsTo(TutorModel, {foreignKey: 'userId'});
@@ -63,8 +64,8 @@ MessageModel.belongsTo(UserModel, {as: 'Sender', foreignKey: 'sender_id'});
 MessageModel.belongsTo(UserModel, {as: 'Receiver', foreignKey: 'receiver_id'});
 
 // Session between Student and Tutor many to many
-StudentModel.belongsToMany(TutorModel, {through: SessionModel, foreignKey: 'userId'});
-TutorModel.belongsToMany(StudentModel, {through: SessionModel, foreignKey: 'userId'});
+// StudentModel.belongsToMany(TutorModel, {through: SessionModel, foreignKey: 'userId'});
+// TutorModel.belongsToMany(StudentModel, {through: SessionModel, foreignKey: 'userId'});
 
 // Tutor to Resources 1 to many
 TutorModel.hasMany(ResourceModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
@@ -75,32 +76,50 @@ StudentModel.belongsToMany(TutorModel, {through: PaymentModel, foreignKey: 'user
 TutorModel.belongsToMany(StudentModel, {through: PaymentModel, foreignKey: 'userId'});
 
 // Tutor to Invoice 1 to many
-TutorModel.hasMany(InvoiceModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
-InvoiceModel.belongsTo(TutorModel, {foreignKey: 'userId'});
+// TutorModel.hasMany(InvoiceModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+// InvoiceModel.belongsTo(TutorModel, {foreignKey: 'userId'});
 
 // Payment to Invoice 1 to 1
-PaymentModel.hasOne(InvoiceModel, {foreignKey: 'payment_id', onDelete: 'CASCADE'});
-InvoiceModel.belongsTo(PaymentModel, {foreignKey: 'payment_id'});
+// PaymentModel.hasOne(InvoiceModel, {foreignKey: 'payment_id', onDelete: 'CASCADE'});
+// InvoiceModel.belongsTo(PaymentModel, {foreignKey: 'payment_id'});
 
 // Tutor and Subject many to many
 TutorModel.belongsToMany(StudentModel, {through: TutorSubjectModel, foreignKey: 'userId'});
 SubjectModel.belongsToMany(TutorModel, {through: TutorSubjectModel, foreignKey: 'subject_id'});
 
 // Review to Student and Tutor 1 to many
-StudentModel.hasMany(ReviewModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
-ReviewModel.belongsTo(StudentModel, {foreignKey: 'userId'});
-
-TutorModel.hasMany(ReviewModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
-ReviewModel.belongsTo(TutorModel, {foreignKey: 'userId'});
+// StudentModel.hasMany(ReviewModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+// ReviewModel.belongsTo(StudentModel, {foreignKey: 'userId'});
+//
+// TutorModel.hasMany(ReviewModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
+// ReviewModel.belongsTo(TutorModel, {foreignKey: 'userId'});
 
 UserModel.hasMany(NotificationModel, {foreignKey: 'recipient_id'});
 NotificationModel.belongsTo(UserModel, {foreignKey: 'recipient_id'});
 
+// --------------------------------------------------------------------------------------------
 // Appointments relations
 AppointmentModel.belongsTo(UserModel, {foreignKey: 'studentId', as: 'Student'});
 // StudentModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 AppointmentModel.belongsTo(UserModel, {foreignKey: 'tutorId', as: 'Tutor'});
 
+AppointmentModel.hasOne(SessionModel, {foreignKey: 'appointmentId'});
+SessionModel.belongsTo(AppointmentModel, {foreignKey: 'appointmentId'});
+
+UserModel.hasMany(SessionModel, {as: 'StudentSessions', foreignKey: 'studentId'});
+UserModel.hasMany(SessionModel, {as: 'TutorSessions', foreignKey: 'tutorId'});
+
+SessionModel.hasOne(ReviewModel, {foreignKey: 'sessionId'});
+ReviewModel.belongsTo(SessionModel, {foreignKey: 'sessionId'})
+
+UserModel.hasMany(ReviewModel, {as: 'StudentReviews', foreignKey: 'studentId'});
+UserModel.hasMany(ReviewModel, {as: 'TutorReviews', foreignKey: 'tutorId'});
+
+SessionModel.hasOne(InvoiceModel, {foreignKey: 'sessionId'});
+InvoiceModel.belongsTo(SessionModel, {foreignKey: 'sessionId'});
+
+UserModel.hasMany(InvoiceModel, {as: 'StudentInvoices', foreignKey: 'studentId'});
+UserModel.hasMany(InvoiceModel, {as: 'TutorInvoices', foreignKey: 'tutorId'});
 // AppointmentModel.belongsTo(TutorModel, {foreignKey: 'userId'});
 // TutorModel.hasMany(AppointmentModel, {foreignKey: 'userId', onDelete: 'CASCADE'});
 

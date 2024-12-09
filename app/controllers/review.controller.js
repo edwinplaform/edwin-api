@@ -2,39 +2,51 @@ import db from "../models/index.js";
 import http from "http-status-codes";
 
 export const createReview = async (req, res) => {
-    const {tutorId, studentId, rating, comment} = req.body;
-
     try {
+        const {
+            sessionId,
+            studentId,
+            tutorId,
+            rating,
+            title,
+            comment
+        } = req.body;
+
+        const session = await db.session.findByPk(sessionId);
+        if (session.status !== 'COMPLETED') {
+            return res.status(http.BAD_REQUEST).json({message: "Session must be completed to leave a review"});
+        }
+
         const review = await db.review.create({
-            tutor_id: tutorId,
-            student_id: studentId,
-            rating: rating,
-            comment: comment
+            id: `REVIEW_${Date.now()}`,
+            sessionId,
+            studentId,
+            tutorId,
+            rating,
+            title,
+            comment
         });
 
-        res.status(http.CREATED).json({status: "success", review});
-
+        res.status(http.CREATED).json({message: "Review has been created", review});
     } catch (err) {
-        console.error("Error creating review", err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+        res.status(http.INTERNAL_SERVER_ERROR).json({error: err.message});
     }
 };
 
-export const getReview = async (req, res) => {
-    const {tutorId} = req.params;
-
+export const getTutorReviews = async (req, res) => {
     try {
-        const review = await db.review.findAll({
-            where: {tutor_id: tutorId},
-            include: [{
-                //check--------------------
-                model: db.student, attributes:['first_name', 'last_name']
-            }]
+        const {tutorId} = req.params;
+        const reviews = await db.review.findAll({
+            where: {tutorId},
+            include: [
+                {
+                    model: db.user,
+                    attributes: ['firstName', 'lastName']
+                }
+            ]
         });
-
-        res.status(http.OK).json(review);
-    }catch (err){
-        console.error("Error getting review", err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: err.message});
+        res.status(http.OK).json(reviews);
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({error: err.message});
     }
-}
+};

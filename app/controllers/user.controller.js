@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import {Op} from "sequelize";
 import http from "http-status-codes"
 import db from "../models/index.js";
-import * as dns from "node:dns";
 
 dotenv.config();
 
@@ -44,11 +43,19 @@ export const createUser = async (req, res) => {
     const t = await db.sequelize.transaction();
 
     try {
+        const userFromClerk = await clerkClient.users.getUser(userId);
+        const email = userFromClerk.emailAddresses[0]?.emailAddress;
+
+        if (!email){
+            return res.status(http.BAD_REQUEST).json({message: "Email address not found for the provided userId"});
+        }
+
         const user = await db.user.create({
             userId,
             firstName,
             lastName,
             phone,
+            email,
             address,
             role
         }, {transaction: t});

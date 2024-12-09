@@ -21,6 +21,11 @@ export default (sequelize) => {
                 unique: true,
                 is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
             },
+            email:{
+                type: DataTypes.STRING,
+                allowNull: true,
+                unique: true,
+            },
             address: {
                 type: DataTypes.STRING,
                 allowNull: false,
