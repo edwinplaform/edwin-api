@@ -17,9 +17,9 @@ export const upgradeRole = async (req, res) => {
                 isOnboarding: isOnboarding,
             },
         })
-        res.status(200).json({success: true});
+        res.status(http.OK).json({success: true});
     } catch (error) {
-        res.status(400).json({message: error.message});
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: error.message});
     }
 };
 
@@ -82,6 +82,7 @@ export const createUser = async (req, res) => {
         res.status(http.CREATED).json({message: "User created successfully ", user});
     } catch (err) {
         await t.rollback();
+        console.log(err);
         res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error creating user", error: err.message});
     }
 };

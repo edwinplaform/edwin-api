@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/create",createAppointment);
+router.post("/",createAppointment);
 router.patch('/:id/status',updateStatus);
 router.get('/status/:status',getAppointmentByStatus);
 router.get('/:id',getBookingById);

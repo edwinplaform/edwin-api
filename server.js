@@ -5,6 +5,9 @@ import {clerkMiddleware} from '@clerk/express'
 import db from "./app/models/index.js"
 import user from './app/routes/user.js'
 import appointment from "./app/routes/appointment.js";
+import session from "./app/routes/session.js";
+import invoice from "./app/routes/invoice.js";
+import review from "./app/routes/review.js";
 // import student from "./app/routes/student.js";
 const app = express();
 
@@ -29,6 +32,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/users", user);
 app.use("/api/v1/appointments", appointment);
+app.use("/api/v1", session);
+app.use("/api/v1", invoice);
+app.use("/api/v1",review);
 // app.use("/api/v1/students", student);
 
 const PORT = process.env.PORT || 8081;
