@@ -1,20 +1,56 @@
 import { DataTypes } from "sequelize";
 
 export default (sequelize) => {
-    const InvoiceModel = sequelize.define("invoice", {
-        invoice_id: {
-            type: DataTypes.INTEGER,
+    const InvoiceModel = sequelize.define("Invoice", {
+        invoiceId: {
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
+            unique:true,
         },
-        issue_date: {
-            type: DataTypes.DATE,
+        sessionId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Sessions',
+                key: 'id'
+            }
+        },
+        tutorId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
+        },
+        studentId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
+        },
+        subject: {
+            type: DataTypes.STRING,
             allowNull: false,
         },
-        total_amount: {
-            type: DataTypes.DECIMAL(7,2),
+        sessionDuration: {
+            type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
+        totalAmount: {
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: false,
+        },
+        paymentReceiptUrl: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        status: {
+            type: DataTypes.ENUM('PENDING', 'PAID', 'OVERDUE'),
+            defaultValue: 'PENDING'
+        }
     }, {timestamps: true});
 
     return InvoiceModel;

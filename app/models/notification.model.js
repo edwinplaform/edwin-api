@@ -8,8 +8,12 @@ export default (sequelize) => {
             autoIncrement: true
         },
         recipient_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Users',
+                key: 'userId',
+            }
         },
         type: {
             type: DataTypes.ENUM('BOOKING', 'PAYMENT', 'MESSAGE', 'REVIEW', 'SYSTEM')

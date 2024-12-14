@@ -1,25 +1,55 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const ReviewModel = sequelize.define("Review", {
-        review_id: {
-            type: DataTypes.INTEGER,
+        id: {
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
+            unique: true,
+        },
+        sessionId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Sessions',
+                key: 'id'
+            }
+        },
+        studentId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
+        },
+        tutorId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
         },
         rating: {
-            type: DataTypes.DECIMAL(3,2),
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 min: 0,
                 max: 5,
             },
         },
+        title: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         comment: {
             type: DataTypes.TEXT,
+            allowNull: false,
         },
-    }, {timestamps: true});
+    }, {
+        timestamps: true
+    });
 
     return ReviewModel;
-
 };
