@@ -11,7 +11,8 @@ export const createAppointment = async (req, res) => {
             grade,
             comment,
             date,
-            time
+            startTime,
+            endTime
         } = req.body;
 
         const student = await db.student.findOne({where: {userId: studentId}});
@@ -26,14 +27,15 @@ export const createAppointment = async (req, res) => {
         }
 
         const booking = await db.appointment.create({
-            id: Date.now().toString(),
+            id: `APP_${Date.now().toString()}`,
             studentId,
             tutorId,
             subject,
             grade,
             comment,
             date,
-            time,
+            startTime,
+            endTime,
             status: "PENDING"
         });
 
@@ -48,8 +50,12 @@ export const updateStatus = async (req, res) => {
         const {id} = req.params;
         const {status, rejectReason} = req.body;
 
-        const booking = await db.appointment.findByPk(id);
+        const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
+        if (!validStatuses.includes(status)) {
+            return res.status(http.BAD_REQUEST).json({message: 'Invalid status'});
+        }
 
+        const booking = await db.appointment.findByPk(id);
         if (!booking) {
             return res.status(http.NOT_FOUND).json({message: 'Booking not found'});
         }
@@ -59,11 +65,25 @@ export const updateStatus = async (req, res) => {
             booking.rejectReason = rejectReason;
         }
 
+        if (status === 'ACCEPTED') {
+            const session = await db.session.create({
+                id: `SESSION_${Date.now()}`,
+                appointmentId: booking.id,
+                studentId: booking.studentId,
+                tutorId: booking.tutorId,
+                subject: booking.subject,
+                date: booking.date,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                status: 'PENDING'
+            });
+        }
+
         await booking.save();
 
         res.status(http.OK).json({message: 'Booking status updated successfully!', booking});
     } catch (error) {
-        res.status(500).json({
+        res.status(http.INTERNAL_SERVER_ERROR).json({
             message: 'Error updating booking status',
             error: error.message
         });
@@ -77,7 +97,7 @@ export const getAppointmentByStatus = async (req, res) => {
 
         const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({message: 'Invalid status'});
+            return res.status(http.BAD_REQUEST).json({message: 'Invalid status'});
         }
 
         const whereConditions = {status};
@@ -106,7 +126,7 @@ export const getAppointmentByStatus = async (req, res) => {
 
         res.status(http.OK).json(bookings);
     } catch (error) {
-        res.status(500).json({
+        res.status(http.INTERNAL_SERVER_ERROR).json({
             message: 'Error fetching bookings',
             error: error.message
         });
@@ -133,14 +153,65 @@ export const getBookingById = async (req, res) => {
         });
 
         if (!booking) {
-            return res.status(404).json({message: 'Booking not found'});
+            return res.status(http.NOT_FOUND).json({message: 'Booking not found'});
         }
 
         res.status(http.OK).json(booking);
     } catch (error) {
-        res.status(500).json({
+        res.status(http.INTERNAL_SERVER_ERROR).json({
             message: 'Error fetching booking',
             error: error.message
+        });
+    }
+};
+
+export const deleteAppointment = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const booking = await db.appointment.findByPk(id);
+
+        if (!booking) {
+            return res.status(http.NOT_FOUND).json({message: "Appointment not found"});
+        }
+
+        await booking.destroy();
+        res.status(http.OK).json({message: "Appointment deleted successfully"});
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error deleting appointment", error: err.message});
+    }
+};
+
+export const getAppointmentByTutorId = async (req, res) => {
+    try {
+        const {tutorId} = req.params;
+        const appointments = await db.appointment.findAll({
+            where: {
+                tutorId: tutorId
+            },
+            include: [
+                {
+                    model: db.user,
+                    as: 'Student',
+                    attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: db.user,
+                    as: 'Tutor',
+                    attributes: ['firstName', 'lastName']
+                }
+            ]
+        });
+
+        if (appointments.length === 0) {
+            return res.status(http.NOT_FOUND).json({message: "No appointments found for this tutor"});
+        }
+
+        res.status(http.OK).json(appointments);
+    } catch (err) {
+        res.status(http.INTERNAL_SERVER_ERROR).json({
+            message: "Error fetching appointments",
+            error: err.message
         });
     }
 };
