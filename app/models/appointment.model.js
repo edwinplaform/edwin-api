@@ -36,11 +36,15 @@ export default (sequelize) => {
             allowNull: true,
         },
         date: {
-            type: DataTypes.STRING,
+            type: DataTypes.DATE,
             allowNull: false,
         },
-        time: {
-            type: DataTypes.STRING,
+        startTime: {
+            type: DataTypes.TIME,
+            allowNull: false
+        },
+        endTime: {
+            type: DataTypes.TIME,
             allowNull: false
         },
         status: {
