@@ -1,11 +1,11 @@
-import { DataTypes } from "sequelize";
+import {DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const InvoiceModel = sequelize.define("Invoice", {
         invoiceId: {
             type: DataTypes.STRING,
             primaryKey: true,
-            unique:true,
+            unique: true,
         },
         sessionId: {
             type: DataTypes.STRING,
@@ -48,8 +48,12 @@ export default (sequelize) => {
             allowNull: true,
         },
         status: {
-            type: DataTypes.ENUM('PENDING', 'PAID', 'OVERDUE'),
+            type: DataTypes.ENUM('PENDING', 'PAID', 'OVERDUE', 'APPROVED', 'REJECTED'),
             defaultValue: 'PENDING'
+        },
+        rejectReason: {
+            type: DataTypes.TEXT,
+            allowNull: true
         }
     }, {timestamps: true});
 
