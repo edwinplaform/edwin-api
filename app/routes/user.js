@@ -8,7 +8,8 @@ import {
     listUser,
     getTutorsByStatus,
     updateTutorStatus,
-    filterUsers
+    filterUsers,
+    updateBankDetails
 } from "../controllers/user.controller.js";
 // import {validateUser} from "../middleware/validationMiddleware.js";
 // import {validateResults} from "../middleware/validationResult.js";
@@ -24,5 +25,6 @@ router.get("/", listUser);
 router.get("/tutors/status/:status", getTutorsByStatus);
 router.patch("/tutors/:userId/status", updateTutorStatus);
 router.get("/filter", filterUsers);
+router.patch('/tutors/:userId/bank', updateBankDetails);
 
 export default router;

@@ -3,8 +3,8 @@ import {createStudent, getStudentAppointments, bookAppointment,cancelAppointment
 
 const router = express.Router();
 
-router.post("/student", postStudent);
-router.get("/student", getAllStudent);
-router.get("/student/:id", getStudent);
+// router.post("/student", postStudent);
+// router.get("/student", getAllStudent);
+// router.get("/student/:id", getStudent);
 
 export default router;
