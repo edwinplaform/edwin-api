@@ -4,7 +4,7 @@ name: Build and Publish Edwin Backend Docker image
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
-    branches: ["main", "nelith-dev"]
+    branches: ["main"]
   pull_request:
     branches: ["main"]
 
