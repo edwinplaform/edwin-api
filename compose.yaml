@@ -13,7 +13,7 @@ services:
       retries: 10
 
   edwin-backend:
-    build: .
+    image: ghcr.io/ksulakshana02/edwin-api:main
     container_name: edwin-backend
     ports:
       - "8081:8081"
