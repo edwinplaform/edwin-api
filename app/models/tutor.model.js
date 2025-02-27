@@ -2,7 +2,7 @@ import {DataTypes} from "sequelize";
 
 export default (sequelize) => {
     const TutorModel = sequelize.define("Tutor", {
-        userId:{
+        userId: {
             type: DataTypes.STRING,
             primaryKey: true,
             references: {
@@ -14,11 +14,11 @@ export default (sequelize) => {
             type: DataTypes.JSON,
             allowNull: false
         },
-        qualifications:{
+        qualifications: {
             type: DataTypes.JSON,
             allowNull: true
         },
-        availability:{
+        availability: {
             type: DataTypes.JSON,
             allowNull: true
         },
@@ -35,15 +35,19 @@ export default (sequelize) => {
             defaultValue: "LKR",
         },
         hourlyRate: {
-            type: DataTypes.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10, 2),
             allowNull: true
         },
         status: {
-            type: DataTypes.ENUM("ACCEPTED","REJECTED","PENDING"),
+            type: DataTypes.ENUM("ACCEPTED", "REJECTED", "PENDING"),
             defaultValue: "PENDING"
+        },
+        bankDetails: {
+            type: DataTypes.JSON,
+            allowNull: true,
         }
-    },{
-        timestamps:false,
+    }, {
+        timestamps: false,
     });
 
     return TutorModel;
