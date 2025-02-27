@@ -45,9 +45,14 @@ export const createUser = async (req, res) => {
     try {
         const userFromClerk = await clerkClient.users.getUser(userId);
         const email = userFromClerk.emailAddresses[0]?.emailAddress;
+        const profilePhotoUrl = userFromClerk.imageUrl;
 
-        if (!email){
+        if (!email) {
             return res.status(http.BAD_REQUEST).json({message: "Email address not found for the provided userId"});
+        }
+
+        if (!profilePhotoUrl) {
+            return res.stale(http.BAD_REQUEST).json({message: "Image url not found for the provided userId"});
         }
 
         const user = await db.user.create({
@@ -56,6 +61,7 @@ export const createUser = async (req, res) => {
             lastName,
             phone,
             email,
+            profilePhotoUrl,
             address,
             role
         }, {transaction: t});
@@ -371,6 +377,35 @@ export const filterUsers = async (req, res) => {
         });
     } catch (err) {
         res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error filtering users", error: err.message});
+    }
+};
+
+export const updateBankDetails = async (req, res) => {
+    const {userId} = req.params;
+    const {bank, accountNumber, branch, holderName} = req.body;
+
+    const t = await db.sequelize.transaction();
+
+    try {
+        const tutor = await db.tutor.findByPk(userId);
+        if (!tutor) {
+            return res.status(http.NOT_FOUND).json({message: "Tutor not found!"});
+        }
+
+        await tutor.update({
+            bankDetails: {
+                bank,
+                accountNumber,
+                branch,
+                holderName
+            }
+        }, {transaction: t});
+
+        await t.commit();
+        res.status(http.OK).json({message: "Bank details updated successfully!"});
+    } catch (err) {
+        await t.rollback();
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error updating bank details: ", err});
     }
 };
 

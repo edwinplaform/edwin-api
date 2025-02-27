@@ -152,6 +152,7 @@ export const updateSessionStatus = async (req, res) => {
   }
 };
 
+
 export const getUserSessions = async (req, res) => {
   const { userId } = req.params;
 

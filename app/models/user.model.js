@@ -18,13 +18,17 @@ export default (sequelize) => {
             phone: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                unique: true,
+                // unique: true,
                 is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
             },
-            email:{
+            email: {
                 type: DataTypes.STRING,
                 allowNull: true,
-                unique: true,
+                // unique: true,
+            },
+            profilePhotoUrl: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
             address: {
                 type: DataTypes.STRING,

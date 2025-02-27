@@ -10,8 +10,8 @@ import {
 
 const router = express.Router();
 
-router.get("/sessions/:userId", getUserSessions);
 router.post("/sessions", createSession);
+router.get("/sessions/:userId", getUserSessions);
 router.put("/sessions/:sessionId", updateSession);
 router.get("/tutors/:tutorId/sessions", getTutorSession);
 router.patch("/sessions/:sessionId/status", updateSessionStatus);
