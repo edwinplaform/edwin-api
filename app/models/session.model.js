@@ -75,7 +75,6 @@
 
 //   return SessionModel;
 // };
-
 import { DataTypes } from "sequelize";
 
 export default (sequelize) => {
