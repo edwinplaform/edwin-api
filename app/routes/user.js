@@ -4,20 +4,16 @@ import {
     deleteUser,
     getUserById,
     updateUser,
-    upgradeRole,
     listUser,
     getTutorsByStatus,
     updateTutorStatus,
     filterUsers,
     updateBankDetails
 } from "../controllers/user.controller.js";
-// import {validateUser} from "../middleware/validationMiddleware.js";
-// import {validateResults} from "../middleware/validationResult.js";
 
 const router = express.Router();
 
-router.post('/upgradeRole', upgradeRole);
-router.post('/', createUser);
+router.patch('/:userId', createUser);
 router.get("/:userId", getUserById);
 router.put("/:userId", updateUser);
 router.delete("/:userId", deleteUser);

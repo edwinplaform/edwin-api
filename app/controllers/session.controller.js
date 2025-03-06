@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import zoomLinkGenerator from "../service/zoomLinkGenerator.js";
+import zoomService from "../service/zoomService.js";
 import http from "http-status-codes";
 import moment from "moment";
 
@@ -15,7 +15,7 @@ export const createSession = async (req, res) => {
             endTime,
         } = req.body;
 
-        // const zoomLink = zoomLinkGenerator();
+        // const zoomLink = zoomService();
 
         const session = await db.session.create({
             id: `SESSION_${Date.now()}`,
@@ -104,7 +104,7 @@ export const updateSessionStatus = async (req, res) => {
 
         session.status = status;
         if (status === 'SCHEDULED') {
-            session.zoomLink = zoomLinkGenerator();
+            session.zoomLink = zoomService();
 
             const startTime = moment(session.startTime, 'HH:mm:ss');
             const endTime = moment(session.endTime, 'HH:mm:ss');
@@ -144,20 +144,24 @@ export const getPaidSessionsForStudent = async (req, res) => {
             include: [
                 {
                     model: db.invoice,
-                    where: {status: 'PAID'},
+                    where: {status: 'APPROVED'},
                     required: true,
                 },
                 {
                     model: db.user,
-                    as: 'student',
+                    as: 'tutor',
                     attributes: ['firstName', 'lastName', 'email'],
                 },
             ],
             where: {studentId},
         });
 
+        if (sessions.length === 0) {
+            return res.status(http.NOT_FOUND).json({message: 'No approved sessions found for this student.'});
+        }
+
         res.status(http.OK).json(sessions);
     } catch (err) {
-        res.status(http.INTERNAL_SERVER_ERROR).json({error: err.message});
+        res.status(http.INTERNAL_SERVER_ERROR).json({message: 'Error fetching approved sessions', error: err.message});
     }
 };
