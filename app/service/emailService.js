@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
+import handlebars from "handlebars";
+import fs from 'fs';
+import path from "path";
 dotenv.config();
 
-import nodemailer from "nodemailer";
-
-let transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: process.env.GMAIL,
@@ -11,17 +13,25 @@ let transporter = nodemailer.createTransport({
     }
 });
 
-let mailOptions = {
-    from: '"EDWin" bhn62812@gmail.com',
-    to: "",
-    subject:"HI",
-    text:"HI",
-    html: '<h1>HI</h1>'
+const sendEmail = async (to, subject, templateName, context) => {
+    try {
+        const templatePath = path.resolve(`./emailStructures/${templateName}.html`);
+        const source = fs.readFileSync(templatePath, 'utf-8');
+        const template = handlebars.compile(source);
+        const html = template(context);
+
+        const mailOptions = {
+            from: process.env.GMAIL,
+            to,
+            subject,
+            html,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully!');
+    } catch (error) {
+        console.error('Error sending email : ', error);
+    }
 };
 
-transporter.sendMail(mailOptions, (error,info)=>{
-    if (error) {
-        return console.log('-------mail send error: '+ error.message);
-    }
-    console.log('Message sent: ' + info.messageId);
-})
+export { sendEmail };
