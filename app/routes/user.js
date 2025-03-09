@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
     createUser,
     deleteUser,
@@ -9,6 +10,7 @@ import {
     updateTutorStatus,
     filterUsers,
     updateBankDetails
+
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
