@@ -1,9 +1,11 @@
 import express from 'express';
-import {createReview, getTutorReviews} from "../controllers/review.controller.js";
+import {createReview, getReviewsBySessionId, getTutorReviews} from "../controllers/review.controller.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post('/review', createReview);
-router.get('/tutors/:tutorId/reviews', getTutorReviews);
+router.post('/reviews',authMiddleware, createReview);
+router.get('/reviews/tutor/:tutorId', getTutorReviews);
+router.get("/reviews/session/:sessionId", getReviewsBySessionId);
 
 export default router;

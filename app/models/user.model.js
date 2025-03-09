@@ -9,22 +9,26 @@ export default (sequelize) => {
             },
             firstName: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: true
             },
             lastName: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: true
             },
             phone: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
                 // unique: true,
                 is: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
             },
             email: {
                 type: DataTypes.STRING,
-                allowNull: true,
+                allowNull: false,
                 // unique: true,
+            },
+            password: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
             profilePhotoUrl: {
                 type: DataTypes.STRING,
@@ -32,11 +36,23 @@ export default (sequelize) => {
             },
             address: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
             },
             role: {
                 type: DataTypes.ENUM('STUDENT', 'TUTOR', 'ADMIN'),
                 allowNull: false,
+            },
+            isOnboarding: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            otp: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            otpExpiresAt: {
+                type: DataTypes.DATE,
+                allowNull: true,
             },
             createdAt: {
                 type: DataTypes.DATE,

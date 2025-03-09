@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import http from 'http-status-codes';
 import dotenv from "dotenv";
 import db from "../models/index.js";
-import {sendEmail} from "../service/emailService.js";
+// import {sendEmail} from "../service/emailService.js";
 
 dotenv.config();
 
@@ -32,7 +32,8 @@ export const register = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const otp = generateOtp();
+        // const otp = generateOtp();
+        const otp = 123456;
         const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
         const user = await db.user.create({
@@ -49,7 +50,7 @@ export const register = async (req, res) => {
             address: null
         });
 
-        await sendEmail(email, "OTP", {otp});
+        // await sendEmail(email, "OTP", {otp});
 
         res.status(http.CREATED).json({message: "User registered successfully"});
     } catch (err) {
