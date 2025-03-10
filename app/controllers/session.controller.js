@@ -152,7 +152,6 @@ export const updateSessionStatus = async (req, res) => {
   }
 };
 
-
 export const getUserSessions = async (req, res) => {
   const { userId } = req.params;
 
@@ -174,7 +173,7 @@ export const getUserSessions = async (req, res) => {
     }));
 
     res.json(formattedSessions);
-  } catch (error) {
+  } catch (err) {
     res.status(http.INTERNAL_SERVER_ERROR).json({ message: err.message });
   }
 };

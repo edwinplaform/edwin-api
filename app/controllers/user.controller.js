@@ -125,7 +125,8 @@ export const updateUser = async (req, res) => {
         description,
         hourlyRate,
         status,
-        role
+        role,
+        profilePhotoUrl
     } = req.body;
 
     const t = await db.sequelize.transaction();
@@ -136,7 +137,8 @@ export const updateUser = async (req, res) => {
             lastName,
             phone,
             address,
-            role
+            role,
+            profilePhotoUrl
         }, {
             where: {userId},
             transaction: t

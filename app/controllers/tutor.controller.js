@@ -200,7 +200,30 @@ export const addTutorAvailability = async (req, res) => {
     }
 };
 
+// export const fetchTutorDetails = async (req, res) => {
+//     const { userId } = req.params;
 
+//     try {
+//         const tutor = await Tutor.findOne({
+//             where: { userId },
+//             include: [
+//                 {
+//                     model: Users,
+//                     attributes: ["firstName", "lastName", "email", "address"]
+//                 }
+//             ]
+//         });
+
+//         if (!tutor) {
+//             return res.status(404).json({ message: "Tutor not found" });
+//         }
+
+//         res.json(tutor);
+//     } catch (error) {
+//         console.error("Error fetching tutor profile:", error);
+//         res.status(500).json({ message: "Server error" });
+//     }
+// };
 
 
 

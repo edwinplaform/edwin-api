@@ -9,7 +9,8 @@ import {
     getTutorsByStatus,
     updateTutorStatus,
     filterUsers,
-    updateBankDetails
+    updateBankDetails,
+    
 } from "../controllers/user.controller.js";
 // import {validateUser} from "../middleware/validationMiddleware.js";
 // import {validateResults} from "../middleware/validationResult.js";
