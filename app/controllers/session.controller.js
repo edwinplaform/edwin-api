@@ -29,6 +29,7 @@ export const createSession = async (req, res) => {
       status: "PENDING",
     });
 
+
     // const student = await db.user.findByPk(studentId);
     // const tutor = await db.user.findByPk(tutorId);
     // sendSessionNotification(student.email, tutor, session);
@@ -126,6 +127,8 @@ export const updateSessionStatus = async (req, res) => {
       const hourlyRate = tutor.hourlyRate;
       const totalAmount = duration * hourlyRate;
 
+      
+
       const invoice = await db.invoice.create({
         invoiceId: `INV_${Date.now()}`,
         sessionId: session.id,
@@ -136,6 +139,8 @@ export const updateSessionStatus = async (req, res) => {
         totalAmount,
         status: "PENDING",
       });
+
+      await sendEmail(email, "ZOOM_LINK");
 
       await session.save();
       return res

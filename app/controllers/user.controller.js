@@ -264,11 +264,12 @@ export const updateTutorStatus = async (req, res) => {
     const {userId} = req.params;
     const {status} = req.body;
 
+
     const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
     if (!status || !validStatuses.includes(status)) {
         return res.status(http.NOT_FOUND).json({message: "Invalid status. Must be one of: PENDING, ACCEPTED, REJECTED"});
     }
-
+    //if statement to be done
     const t = await db.sequelize.transaction();
 
     try {
