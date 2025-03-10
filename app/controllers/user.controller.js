@@ -1,4 +1,3 @@
-import {clerkClient} from "@clerk/express";
 import dotenv from "dotenv";
 import {Op} from "sequelize";
 import http from "http-status-codes"
@@ -6,29 +5,31 @@ import db from "../models/index.js";
 
 dotenv.config();
 
-export const upgradeRole = async (req, res) => {
-    const {userId, role, isOnboarding} = req.body;
-    console.log(userId, role);
-
-    try {
-        await clerkClient.users.updateUserMetadata(userId, {
-            publicMetadata: {
-                role: role,
-                isOnboarding: isOnboarding,
-            },
-        })
-        res.status(http.OK).json({success: true});
-    } catch (error) {
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: error.message});
-    }
-};
+// export const upgradeRole = async (req, res) => {
+//     const {userId, role, isOnboarding} = req.body;
+//     console.log(userId, role);
+//
+//     try {
+//         await clerkClient.users.updateUserMetadata(userId, {
+//             publicMetadata: {
+//                 role: role,
+//                 isOnboarding: isOnboarding,
+//             },
+//         })
+//         res.status(http.OK).json({success: true});
+//     } catch (error) {
+//         console.error("Error updating user metadata:", error);
+//         res.status(http.INTERNAL_SERVER_ERROR).json({message: error.message});
+//     }
+// };
 
 export const createUser = async (req, res) => {
+    const {userId} = req.params;
     const {
-        userId,
         firstName,
         lastName,
         phone,
+        profilePhotoUrl,
         address,
         subjects,
         qualifications,
@@ -37,34 +38,28 @@ export const createUser = async (req, res) => {
         description,
         hourlyRate,
         status,
-        role
+        role,
+        isOnboarding
     } = req.body;
+
+    console.log("UserID:", userId);
 
     const t = await db.sequelize.transaction();
 
     try {
-        const userFromClerk = await clerkClient.users.getUser(userId);
-        const email = userFromClerk.emailAddresses[0]?.emailAddress;
-        const profilePhotoUrl = userFromClerk.imageUrl;
-
-        if (!email) {
-            return res.status(http.BAD_REQUEST).json({message: "Email address not found for the provided userId"});
+        const user = await db.user.findByPk(userId);
+        if (!user) {
+            return res.status(http.NOT_FOUND).json({message: "User not found"});
         }
 
-        if (!profilePhotoUrl) {
-            return res.stale(http.BAD_REQUEST).json({message: "Image url not found for the provided userId"});
-        }
-
-        const user = await db.user.create({
-            userId,
+        await db.user.update({
             firstName,
             lastName,
             phone,
-            email,
             profilePhotoUrl,
             address,
-            role
-        }, {transaction: t});
+            isOnboarding
+        }, {where: {userId}, transaction: t});
 
         if (role === 'TUTOR') {
             await db.tutor.create({
@@ -251,7 +246,7 @@ export const getTutorsByStatus = async (req, res) => {
             where: {status},
             include: [{
                 model: db.user,
-                attributes: ['firstName', 'lastName', 'phone', 'address']
+                attributes: ['firstName', 'lastName', 'phone', 'address','profilePhotoUrl']
             }],
             // order: [['createdAt', 'DESC']]
         });
@@ -266,11 +261,12 @@ export const updateTutorStatus = async (req, res) => {
     const {userId} = req.params;
     const {status} = req.body;
 
+
     const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
     if (!status || !validStatuses.includes(status)) {
         return res.status(http.NOT_FOUND).json({message: "Invalid status. Must be one of: PENDING, ACCEPTED, REJECTED"});
     }
-
+    //if statement to be done
     const t = await db.sequelize.transaction();
 
     try {
@@ -410,8 +406,3 @@ export const updateBankDetails = async (req, res) => {
         res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error updating bank details: ", err});
     }
 };
-
-
-
-
-
