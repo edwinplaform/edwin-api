@@ -78,3 +78,4 @@ export default (sequelize) => {
     );
     return SessionModel;
 };
+

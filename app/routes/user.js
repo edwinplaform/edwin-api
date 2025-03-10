@@ -10,7 +10,6 @@ import {
     updateTutorStatus,
     filterUsers,
     updateBankDetails
-
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
