@@ -52,10 +52,13 @@ SessionModel.belongsTo(UserModel, {foreignKey: 'studentId', as: 'student'});
 SessionModel.belongsTo(UserModel, {foreignKey: 'tutorId', as: 'tutor'});
 
 SessionModel.hasOne(ReviewModel, {foreignKey: 'sessionId'});
-ReviewModel.belongsTo(SessionModel, {foreignKey: 'sessionId'})
+ReviewModel.belongsTo(SessionModel, {foreignKey: 'sessionId'});
 
 UserModel.hasMany(ReviewModel, {as: 'StudentReviews', foreignKey: 'studentId'});
 UserModel.hasMany(ReviewModel, {as: 'TutorReviews', foreignKey: 'tutorId'});
+
+ReviewModel.belongsTo(UserModel, {foreignKey: "studentId", as: "student"});
+ReviewModel.belongsTo(UserModel, {foreignKey: "tutorId", as: "tutor"});
 
 SessionModel.hasOne(InvoiceModel, {foreignKey: 'sessionId'});
 InvoiceModel.belongsTo(SessionModel, {foreignKey: 'sessionId'});

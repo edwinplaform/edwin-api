@@ -4,7 +4,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post('/reviews',authMiddleware, createReview);
+router.post('/reviews', createReview);
 router.get('/reviews/tutor/:tutorId', getTutorReviews);
 router.get("/reviews/session/:sessionId", getReviewsBySessionId);
 
