@@ -1,26 +1,57 @@
 services:
-  db:
-    image: mysql:8.0
-    container_name: mysql
-    ports:
-      - "3306:3306"
+  edwin-db:
+    image: mysql:latest
     restart: always
-    volumes:
-      - dbdata:/var/lib/mysql
+    env_file:
+      - ./db/.env
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
+    volumes:
+      - ./db/dbdata:/var/lib/mysql
+    container_name: edwin-db
+    networks:
+      - edwin-network
 
   edwin-backend:
-    image: ghcr.io/ksulakshana02/edwin-api:main
+    build: .
     container_name: edwin-backend
-    ports:
-      - "8081:8081"
     restart: always
     depends_on:
-      db:
+      edwin-db:
         condition: service_healthy
+    networks:
+      - edwin-network
+
+  edwin-frontend:
+    build: ../EDWin-web
+    depends_on:
+      - edwin-backend
+    restart: always
+    container_name: edwin-frontend
+    networks:
+      - edwin-network
+
+  edwin-pma:
+    build: ./phpmyadmin
+    depends_on:
+      edwin-db:
+        condition: service_healthy
+    env_file:
+      - ./db/.env
+    container_name: edwin-pma
+    restart: always
+    networks:
+      - edwin-network
+    volumes:
+      - pma:/var/www/pma/html/
 
 volumes:
-  dbdata:
+  pma:
+
+networks:
+  edwin-network:
+    driver: bridge
