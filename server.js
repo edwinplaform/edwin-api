@@ -8,12 +8,13 @@ import session from "./app/routes/session.js";
 import invoice from "./app/routes/invoice.js";
 import review from "./app/routes/review.js";
 import auth from "./app/routes/auth.js";
+
 const app = express();
 
 dotenv.config();
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 db.sequelize.sync({alter: false, force: false})
     .then(() => {
@@ -23,7 +24,7 @@ db.sequelize.sync({alter: false, force: false})
         console.log(err));
 
 app.get("/", (req, res) => {
-    res.json({message: "Hello World!"});
+  res.json({ message: "Hello World!" });
 });
 
 app.use("/api/v1/users", user);
@@ -35,5 +36,5 @@ app.use("/api/v1", review);
 
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
-    console.log(`server is running on port ${PORT}.`);
+  console.log(`server is running on port ${PORT}.`);
 });

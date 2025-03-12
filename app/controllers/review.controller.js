@@ -38,6 +38,8 @@ export const createReview = async (req, res) => {
             comment
         });
 
+        
+
         res.status(http.CREATED).json({message: "Review has been created", review});
     } catch (err) {
         res.status(http.INTERNAL_SERVER_ERROR).json({error: err.message});

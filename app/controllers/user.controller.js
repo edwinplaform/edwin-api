@@ -113,7 +113,8 @@ export const updateUser = async (req, res) => {
         description,
         hourlyRate,
         status,
-        role
+        role,
+        profilePhotoUrl
     } = req.body;
 
     const t = await db.sequelize.transaction();
@@ -124,7 +125,8 @@ export const updateUser = async (req, res) => {
             lastName,
             phone,
             address,
-            role
+            role,
+            profilePhotoUrl
         }, {
             where: {userId},
             transaction: t
@@ -252,11 +254,12 @@ export const updateTutorStatus = async (req, res) => {
     const {userId} = req.params;
     const {status} = req.body;
 
+
     const validStatuses = ['PENDING', 'ACCEPTED', 'REJECTED'];
     if (!status || !validStatuses.includes(status)) {
         return res.status(http.NOT_FOUND).json({message: "Invalid status. Must be one of: PENDING, ACCEPTED, REJECTED"});
     }
-
+    //if statement to be done
     const t = await db.sequelize.transaction();
 
     try {

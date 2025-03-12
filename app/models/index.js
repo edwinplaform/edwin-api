@@ -12,7 +12,7 @@ import AppointmentModelFunc from "./appointment.model.js";
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: dbConfig.dialect,
-    operatorsAliases: false,
+    // operatorsAliases: false,
     pool: dbConfig.pool,
 });
 

@@ -154,6 +154,7 @@ export const updateSessionStatus = async (req, res) => {
     }
 };
 
+
 //     session.status = status;
 //     if (status === "SCHEDULED") {
 //       session.zoomLink = zoomLinkGenerator();
