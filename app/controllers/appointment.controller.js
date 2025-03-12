@@ -39,7 +39,7 @@ export const createAppointment = async (req, res) => {
             status: "PENDING"
         });
 
-        await sendEmail(email, "BOOKING_CONFIRMATION");
+        //await sendEmail(email, "BOOKING_CONFIRMATION");
 
         res.status(http.CREATED).json({message: "Appointment created successfully", booking});
     } catch (err) {
