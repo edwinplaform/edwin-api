@@ -2,26 +2,9 @@ import dotenv from "dotenv";
 import {Op} from "sequelize";
 import http from "http-status-codes"
 import db from "../models/index.js";
+import {generateToken} from "./auth.controller.js";
 
 dotenv.config();
-
-// export const upgradeRole = async (req, res) => {
-//     const {userId, role, isOnboarding} = req.body;
-//     console.log(userId, role);
-//
-//     try {
-//         await clerkClient.users.updateUserMetadata(userId, {
-//             publicMetadata: {
-//                 role: role,
-//                 isOnboarding: isOnboarding,
-//             },
-//         })
-//         res.status(http.OK).json({success: true});
-//     } catch (error) {
-//         console.error("Error updating user metadata:", error);
-//         res.status(http.INTERNAL_SERVER_ERROR).json({message: error.message});
-//     }
-// };
 
 export const createUser = async (req, res) => {
     const {userId} = req.params;
@@ -80,11 +63,21 @@ export const createUser = async (req, res) => {
         }
 
         await t.commit();
-        res.status(http.CREATED).json({message: "User created successfully ", user});
+
+        const updatedUser = await db.user.findByPk(userId);
+        const newToken = generateToken(updatedUser);
+
+        res.status(http.OK).json({
+            message: "User created successfully ", user: updatedUser.toJSON(),
+            accessToken: newToken,
+        });
     } catch (err) {
         await t.rollback();
-        console.log(err);
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error creating user", error: err.message});
+        console.error("Error updating user:", err);
+        res.status(http.INTERNAL_SERVER_ERROR).json({
+            message: "Error creating user",
+            error: err.message || "An unexpected error occurred"
+        });
     }
 };
 
@@ -246,7 +239,7 @@ export const getTutorsByStatus = async (req, res) => {
             where: {status},
             include: [{
                 model: db.user,
-                attributes: ['firstName', 'lastName', 'phone', 'address','profilePhotoUrl']
+                attributes: ['firstName', 'lastName', 'phone', 'address', 'profilePhotoUrl']
             }],
             // order: [['createdAt', 'DESC']]
         });
@@ -378,6 +371,35 @@ export const filterUsers = async (req, res) => {
     }
 };
 
+// export const updateBankDetails = async (req, res) => {
+//     const {userId} = req.params;
+//     const {bank, accountNumber, branch, holderName} = req.body;
+//
+//     const t = await db.sequelize.transaction();
+//
+//     try {
+//         const tutor = await db.tutor.findByPk(userId);
+//         if (!tutor) {
+//             return res.status(http.NOT_FOUND).json({message: "Tutor not found!"});
+//         }
+//
+//         await tutor.update({
+//             bankDetails: {
+//                 bank,
+//                 accountNumber,
+//                 branch,
+//                 holderName
+//             }
+//         }, {transaction: t});
+//
+//         await t.commit();
+//         res.status(http.OK).json({message: "Bank details updated successfully!"});
+//     } catch (err) {
+//         await t.rollback();
+//         res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error updating bank details: ", err});
+//     }
+// };
+
 export const updateBankDetails = async (req, res) => {
     const {userId} = req.params;
     const {bank, accountNumber, branch, holderName} = req.body;
@@ -385,24 +407,54 @@ export const updateBankDetails = async (req, res) => {
     const t = await db.sequelize.transaction();
 
     try {
-        const tutor = await db.tutor.findByPk(userId);
+        const tutor = await db.tutor.findOne({where: {userId}});
         if (!tutor) {
-            return res.status(http.NOT_FOUND).json({message: "Tutor not found!"});
+            await t.rollback();
+            return res.status(http.NOT_FOUND).json({
+                message: "Tutor not found or user is not a tutor",
+                error: "TUTOR_NOT_FOUND"
+            });
         }
 
-        await tutor.update({
-            bankDetails: {
-                bank,
-                accountNumber,
-                branch,
-                holderName
+        const updatedBankDetails = {
+            bank,
+            accountNumber,
+            branch,
+            holderName
+        };
+
+        const [updated] = await db.tutor.update(
+            {bankDetails: updatedBankDetails},
+            {
+                where: {userId},
+                transaction: t
             }
-        }, {transaction: t});
+        );
+
+        if (!updated) {
+            await t.rollback();
+            return res.status(http.NOT_FOUND).json({
+                message: "Failed to update bank details",
+                error: "UPDATE_FAILED"
+            });
+        }
 
         await t.commit();
-        res.status(http.OK).json({message: "Bank details updated successfully!"});
+        const updatedTutor = await db.tutor.findOne({
+            where: {userId},
+            include: [{model: db.user}]
+        });
+
+        res.status(http.OK).json({
+            message: "Bank details updated successfully!",
+            tutor: updatedTutor
+        });
     } catch (err) {
         await t.rollback();
-        res.status(http.INTERNAL_SERVER_ERROR).json({message: "Error updating bank details: ", err});
+        console.error('Error updating bank details:', err);
+        res.status(http.INTERNAL_SERVER_ERROR).json({
+            message: "Error updating bank details",
+            error: err.message
+        });
     }
 };

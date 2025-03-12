@@ -4,12 +4,13 @@ import http from "http-status-codes";
 export const createReview = async (req, res) => {
     try {
         const {
+            userId,
             sessionId,
             rating,
             title,
             comment
         } = req.body;
-        const studentId = req.user.id;
+        const studentId = userId;
 
         const session = await db.session.findByPk(sessionId);
         if (!session) {
@@ -53,11 +54,22 @@ export const getTutorReviews = async (req, res) => {
             include: [
                 {
                     model: db.user,
+                    as: "student",
                     attributes: ['firstName', 'lastName']
                 }
             ]
         });
-        res.status(http.OK).json(reviews);
+
+        const transformedReviews = reviews.map((review) => ({
+            title: review.title,
+            User: review.student,
+            rating: review.rating,
+            comment: review.comment,
+            createdAt: review.createdAt,
+            updatedAt: review.updatedAt,
+        }));
+
+        res.status(http.OK).json(transformedReviews);
     } catch (err) {
         res.status(http.INTERNAL_SERVER_ERROR).json({error: err.message});
     }

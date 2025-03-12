@@ -14,6 +14,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/oauth", oauthLogin);
 router.post("/verify", verifyEmail);
-router.post("/change-password", authMiddleware, changePassword);
+router.patch("/:userId/change-password",changePassword);
 
 export default router;

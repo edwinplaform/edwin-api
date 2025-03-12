@@ -7,7 +7,7 @@ import db from "../models/index.js";
 
 dotenv.config();
 
-const generateToken = (user) => {
+export const generateToken = (user) => {
     return jwt.sign({
             id: user.userId,
             role: user.role,
@@ -126,7 +126,7 @@ export const verifyEmail = async (req, res) => {
 
 export const changePassword = async (req, res) => {
     try {
-        const {userId} = req.user;
+        const {userId} = req.params;
         const {oldPassword, newPassword} = req.body;
 
         const user = await db.user.findByPk(userId);
